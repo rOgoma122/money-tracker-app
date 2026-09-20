@@ -92,24 +92,41 @@ export default function App() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Money Tracker</Text>
-
       {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-
       <View style={styles.balanceBox}>
         <Text style={styles.balanceLabel}>Current Balance</Text>
-        <Text style={styles.balanceValue}>₹{balance.toFixed(2)}</Text>
+        <Text style={styles.balanceValue}>Rs {balance.toFixed(2)}</Text>
       </View>
-
       <View style={styles.balanceBox}>
         <Text style={styles.balanceLabel}>Spent This Month</Text>
-        <Text style={styles.balanceValue}>₹{monthTotal.toFixed(2)}</Text>
+        <Text style={styles.balanceValue}>Rs {monthTotal.toFixed(2)}</Text>
       </View>
-
       <Text style={styles.section}>Add Wage</Text>
       <TextInput style={styles.input} placeholder="Job Name" value={jobName} onChangeText={setJobName} />
       <TextInput style={styles.input} placeholder="Amount" value={wageAmount} onChangeText={setWageAmount} keyboardType="numeric" />
       <TouchableOpacity style={styles.button} onPress={addWage}>
         <Text style={styles.buttonText}>Add Wage</Text>
       </TouchableOpacity>
+      <Text style={styles.section}>Log Spending</Text>
+      <TextInput style={styles.input} placeholder="Amount" value={spendAmount} onChangeText={setSpendAmount} keyboardType="numeric" />
+      <TextInput style={styles.input} placeholder="Category" value={spendCategory} onChangeText={setSpendCategory} />
+      <TouchableOpacity style={[styles.button, styles.spendButton]} onPress={addSpending}>
+        <Text style={styles.buttonText}>Log Spending</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
 
-      <Text style={styles.sect
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  errorText: { color: 'red', marginBottom: 10, fontSize: 12 },
+  balanceBox: { backgroundColor: '#f0f0f0', padding: 15, borderRadius: 10, marginBottom: 15 },
+  balanceLabel: { fontSize: 14, color: '#666' },
+  balanceValue: { fontSize: 24, fontWeight: 'bold', marginTop: 5 },
+  section: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 10 },
+  button: { backgroundColor: '#22c55e', padding: 15, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
+  spendButton: { backgroundColor: '#ef4444' },
+  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+});
