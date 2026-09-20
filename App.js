@@ -35,7 +35,7 @@ export default function App() {
     try {
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const { data, error } = await supabase.from('Spending').select('Amount').gte('date_spent', firstDay);
+      const { data, error } = await supabase.from('Spending').select('Amount').gte('Date_spent', firstDay);
       if (error) throw error;
       if (data) {
         const total = data.reduce((sum, row) => sum + parseFloat(row.Amount || 0), 0);
@@ -52,7 +52,8 @@ export default function App() {
         Alert.alert('Error', 'Please fill job name and amount');
         return;
       }
-      const { error: e1 } = await supabase.from('Wages').insert([{ job_name: jobName, amount: parseFloat(wageAmount) }]);
+      const today = new Date().toISOString().split('T')[0];
+      const { error: e1 } = await supabase.from('Wages').insert([{ job_name: jobName, amount: parseFloat(wageAmount), date_paid: today }]);
       if (e1) throw e1;
       const newBalance = balance + parseFloat(wageAmount);
       const { error: e2 } = await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
@@ -72,7 +73,8 @@ export default function App() {
         Alert.alert('Error', 'Please enter amount');
         return;
       }
-      const { error: e1 } = await supabase.from('Spending').insert([{ Amount: parseFloat(spendAmount), Category: spendCategory }]);
+      const today = new Date().toISOString().split('T')[0];
+      const { error: e1 } = await supabase.from('Spending').insert([{ Amount: parseFloat(spendAmount), Category: spendCategory, Date_spent: today }]);
       if (e1) throw e1;
       const newBalance = balance - parseFloat(spendAmount);
       const { error: e2 } = await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
@@ -110,26 +112,4 @@ export default function App() {
         <Text style={styles.buttonText}>Add Wage</Text>
       </TouchableOpacity>
 
-      <Text style={styles.section}>Log Spending</Text>
-      <TextInput style={styles.input} placeholder="Amount" value={spendAmount} onChangeText={setSpendAmount} keyboardType="numeric" />
-      <TextInput style={styles.input} placeholder="Category" value={spendCategory} onChangeText={setSpendCategory} />
-      <TouchableOpacity style={[styles.button, styles.spendButton]} onPress={addSpending}>
-        <Text style={styles.buttonText}>Log Spending</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  errorText: { color: 'red', marginBottom: 10, fontSize: 12 },
-  balanceBox: { backgroundColor: '#f0f0f0', padding: 15, borderRadius: 10, marginBottom: 15 },
-  balanceLabel: { fontSize: 14, color: '#666' },
-  balanceValue: { fontSize: 24, fontWeight: 'bold', marginTop: 5 },
-  section: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 10 },
-  button: { backgroundColor: '#22c55e', padding: 15, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
-  spendButton: { backgroundColor: '#ef4444' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-});
+      <Text style={styles.sect
