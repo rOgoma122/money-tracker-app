@@ -14,6 +14,7 @@ export default function App() {
   const [spendCategory, setSpendCategory] = useState('');
   const [balance, setBalance] = useState(0);
   const [monthTotal, setMonthTotal] = useState(0);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     fetchBalance();
@@ -21,52 +22,76 @@ export default function App() {
   }, []);
 
   async function fetchBalance() {
-    const { data } = await supabase.from('balance').select('*').eq('id', 1).single();
-    if (data) setBalance(data.Current_balance || data.current_balance);
+    try {
+      const { data, error } = await supabase.from('balance').select('*').eq('id', 1).single();
+      if (error) throw error;
+      if (data) setBalance(data.Current_balance ?? data.current_balance ?? 0);
+    } catch (e) {
+      setErrorMsg('Balance error: ' + e.message);
+    }
   }
 
   async function fetchMonthSpending() {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const { data } = await supabase.from('Spending').select('Amount').gte('date_spent', firstDay);
-    if (data) {
-      const total = data.reduce((sum, row) => sum + parseFloat(row.Amount || 0), 0);
-      setMonthTotal(total);
+    try {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const { data, error } = await supabase.from('Spending').select('Amount').gte('date_spent', firstDay);
+      if (error) throw error;
+      if (data) {
+        const total = data.reduce((sum, row) => sum + parseFloat(row.Amount || 0), 0);
+        setMonthTotal(total);
+      }
+    } catch (e) {
+      setErrorMsg('Spending error: ' + e.message);
     }
   }
 
   async function addWage() {
-    if (!jobName || !wageAmount) {
-      Alert.alert('Error', 'Please fill job name and amount');
-      return;
+    try {
+      if (!jobName || !wageAmount) {
+        Alert.alert('Error', 'Please fill job name and amount');
+        return;
+      }
+      const { error: e1 } = await supabase.from('Wages').insert([{ job_name: jobName, amount: parseFloat(wageAmount) }]);
+      if (e1) throw e1;
+      const newBalance = balance + parseFloat(wageAmount);
+      const { error: e2 } = await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
+      if (e2) throw e2;
+      setBalance(newBalance);
+      setJobName('');
+      setWageAmount('');
+      Alert.alert('Success', 'Wage added!');
+    } catch (e) {
+      Alert.alert('Error adding wage', e.message);
     }
-    await supabase.from('Wages').insert([{ job_name: jobName, amount: parseFloat(wageAmount) }]);
-    const newBalance = balance + parseFloat(wageAmount);
-    await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
-    setBalance(newBalance);
-    setJobName('');
-    setWageAmount('');
-    Alert.alert('Success', 'Wage added!');
   }
 
   async function addSpending() {
-    if (!spendAmount) {
-      Alert.alert('Error', 'Please enter amount');
-      return;
+    try {
+      if (!spendAmount) {
+        Alert.alert('Error', 'Please enter amount');
+        return;
+      }
+      const { error: e1 } = await supabase.from('Spending').insert([{ Amount: parseFloat(spendAmount), Category: spendCategory }]);
+      if (e1) throw e1;
+      const newBalance = balance - parseFloat(spendAmount);
+      const { error: e2 } = await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
+      if (e2) throw e2;
+      setBalance(newBalance);
+      setSpendAmount('');
+      setSpendCategory('');
+      fetchMonthSpending();
+      Alert.alert('Success', 'Spending logged!');
+    } catch (e) {
+      Alert.alert('Error logging spending', e.message);
     }
-    await supabase.from('Spending').insert([{ Amount: parseFloat(spendAmount), Category: spendCategory }]);
-    const newBalance = balance - parseFloat(spendAmount);
-    await supabase.from('balance').update({ Current_balance: newBalance }).eq('id', 1);
-    setBalance(newBalance);
-    setSpendAmount('');
-    setSpendCategory('');
-    fetchMonthSpending();
-    Alert.alert('Success', 'Spending logged!');
   }
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Money Tracker</Text>
+
+      {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
       <View style={styles.balanceBox}>
         <Text style={styles.balanceLabel}>Current Balance</Text>
@@ -98,6 +123,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  errorText: { color: 'red', marginBottom: 10, fontSize: 12 },
   balanceBox: { backgroundColor: '#f0f0f0', padding: 15, borderRadius: 10, marginBottom: 15 },
   balanceLabel: { fontSize: 14, color: '#666' },
   balanceValue: { fontSize: 24, fontWeight: 'bold', marginTop: 5 },
