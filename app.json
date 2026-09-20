@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Money Tracker",
-    "slug": "money-tracker-app",
-    "owner": "mithunmoneytracker",
+    "slug": "mithun-money-tracker",
+    "owner": "mithunmoneytrackers-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,6 +12,11 @@
     },
     "android": {
       "package": "com.mithun.moneytracker"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1813ad09-0323-4ed7-ac4b-9f7d3eb31c18"
+      }
     }
   }
 }
